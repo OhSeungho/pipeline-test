@@ -1,0 +1,33 @@
+steps:
+- id: 'run quality test'
+  name: "golangci/golangci-lint"
+  args: ["golangci-lint","run"]
+
+- id: 'run unit test'
+  name: 'gcr.io/cloud-builders/go'
+  args: ['test', 'app']
+  env: ['GOPATH=.']
+
+- id: 'run security checks'
+  name: "securego/gosec"
+  args: ['app']
+  env: ['GOPATH=.']
+
+- id: 'build image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'registry.serverlessmovies.com/mlabouardy/app:$SHORT_SHA', '.']
+
+- id: 'login to nexus'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['login', 'registry.serverlessmovies.com', '-u', '${_NEXUS_USERNAME}', '-p', '${_NEXUS_PASSWORD}']
+
+- id: 'tag image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', 'registry.serverlessmovies.com/mlabouardy/app:$SHORT_SHA', 'registry.serverlessmovies.com/mlabouardy/app:latest']
+
+- id: 'push image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'registry.serverlessmovies.com/mlabouardy/app:$SHORT_SHA']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'registry.serverlessmovies.com/mlabouardy/app:latest']
