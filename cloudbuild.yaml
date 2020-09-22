@@ -1,4 +1,18 @@
 steps:
+- id: 'run quality test'
+  name: "golangci/golangci-lint"
+  args: ["golangci-lint","run"]
+
+- id: 'run unit test'
+  name: 'gcr.io/cloud-builders/go'
+  args: ['test', 'app']
+  env: ['GOPATH=.']
+
+- id: 'run security checks'
+  name: "securego/gosec"
+  args: ['app']
+  env: ['GOPATH=.']
+
 - id: 'build image'
   name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'registry.serverlessmovies.com/mlabouardy/app:$SHORT_SHA', '.']
